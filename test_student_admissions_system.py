@@ -1,60 +1,47 @@
-import re
+import unittest
+from student_admissions_system import process_application
 
-# ---------------------------------------------
-# SECURITY: Input Validation Functions
-# ---------------------------------------------
+class TestStudentAdmissionSystem(unittest.TestCase):
 
-def validate_name(name):
-    """
-    Validates that the name is a non-empty string.
-    """
-    if not isinstance(name, str) or len(name.strip()) < 1:
-        raise ValueError("Name must be a non-empty string.")
-    return name.strip()
+    def test_valid_application(self):
+        """
+        Tests that valid input is processed successfully.
+        """
+        data = {"name": "Alice Johnson", "dob": "2002-09-15", "email": "alice.johnson@example.com"}
+        result = process_application(data)
+        self.assertEqual(result, "Application processed successfully.")
 
-def validate_dob(dob):
-    """
-    Ensures DOB follows the correct YYYY-MM-DD format using regex.
-    """
-    date_pattern = r"^\d{4}-\d{2}-\d{2}$"
-    if not re.match(date_pattern, dob):
-        raise ValueError("DOB must be in YYYY-MM-DD format.")
-    return dob
+    def test_invalid_name_empty(self):
+        """
+        Verifies that an empty name triggers an appropriate error.
+        """
+        data = {"name": "", "dob": "2002-09-15", "email": "alice.johnson@example.com"}
+        result = process_application(data)
+        self.assertIn("Error", result)
 
-def validate_email(email):
-    """
-    Ensures that the email is in a valid format (e.g., user@example.com).
-    """
-    email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-    if not re.match(email_pattern, email):
-        raise ValueError("Email must be in a valid format.")
-    return email
+    def test_invalid_dob_format(self):
+        """
+        Ensures that a wrongly formatted DOB is rejected.
+        """
+        data = {"name": "Alice Johnson", "dob": "15/09/2002", "email": "alice.johnson@example.com"}
+        result = process_application(data)
+        self.assertIn("Error", result)
 
-def validate_application_data(data):
-    """
-    Aggregates multiple validation checks into one clean function.
-    Any invalid input will raise a ValueError.
-    """
-    validate_name(data.get("name"))
-    validate_dob(data.get("dob"))
-    validate_email(data.get("email"))
-    return True
+    def test_invalid_email_format(self):
+        """
+        Ensures that an invalid email format triggers an error.
+        """
+        data = {"name": "Alice Johnson", "dob": "2002-09-15", "email": "alicejohnson.com"}
+        result = process_application(data)
+        self.assertIn("Error", result)
 
-# ---------------------------------------------
-# RELIABILITY & MAINTAINABILITY: Core Logic
-# ---------------------------------------------
+    def test_missing_fields(self):
+        """
+        Tests the system's behavior when expected fields are missing.
+        """
+        data = {}
+        result = process_application(data)
+        self.assertIn("Error", result)
 
-def process_application(data):
-    """
-    RELIABILITY:
-    Wraps the validation process in a try-except block to prevent crashes
-    and ensure consistent error messaging.
-    
-    MAINTAINABILITY:
-    Keeps business logic separate from validation and I/O for easier updates.
-    """
-    try:
-        if validate_application_data(data):
-            return "Application processed successfully."
-    except ValueError as e:
-        return f"Error: {e}"
+if __name__ == "__main__":
+    unittest.main()
